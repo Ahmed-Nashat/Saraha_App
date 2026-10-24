@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node ./src/main.js",
+    "start": "cross-env NODE_ENV=production pm2 start src/main.js",
     "dev": "cross-env NODE_ENV=development nodemon ./src/main.js",
     "pm2:start": "pm2 start ./src/main.js --name saraha",
     "pm2:stop": "pm2 stop saraha",

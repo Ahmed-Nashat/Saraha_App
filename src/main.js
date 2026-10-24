@@ -12,6 +12,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { redisClient } from "./db/redis.connection.js";
 import geoip from "geoip-lite";
+import morgan from "morgan";
 
 if (process.env.NODE_ENV == "production") console.log = () => {};
 
@@ -39,6 +40,7 @@ const corsOptions = {
 //  loopback  -> trust reverse proxies running on the same machine
 app.set("trust-proxy", true);
 app.use(
+  morgan("dev"),
   helmet(),
   express.json(),
   cors(),

@@ -1,10 +1,9 @@
 {
-  "name": "saraha",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production pm2 start src/main.js",
+    "start": "cross-env NODE_ENV=production pm2 start src/main.js --name backend",
     "dev": "cross-env NODE_ENV=development nodemon ./src/main.js",
     "pm2:start": "pm2 start ./src/main.js --name saraha",
     "pm2:stop": "pm2 stop saraha",
@@ -14,7 +13,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module", 
+  "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
@@ -31,11 +30,6 @@
     "multer": "^2.4.0",
     "nanoid": "^6.0.2",
     "nodemailer": "^10.0.16",
-    "nodemon": "^3.1.14",
-    "redis": "^6.3.0",
-    "zod": "^4.6.5"
-  },
-  "allowScripts": {
-    "bcrypt@6.0.0": true
+    "nodemon": "^3.1.14"
   }
 }

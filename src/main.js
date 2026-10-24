@@ -50,7 +50,7 @@ app.use(
     },
     legacyHeaders: false,
     message: JSON.stringify({
-      message: data?.country == "EG" ? "Too many requests" : "Not Allowed",
+      message: "Too many requests",
     }),
     keyGenerator: (req) => {
       // custom key per request

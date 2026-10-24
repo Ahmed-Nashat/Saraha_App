@@ -46,7 +46,7 @@ app.use(
     windowMs: 5 * 60 * 1000, // 5 minutes
     limit: function (req) {
       const data = geoip.lookup(req.headers["x-forward-for"]);
-      return data?.country == "EG" ? 100 : 0;
+      return 100;
     },
     legacyHeaders: false,
     message: JSON.stringify({

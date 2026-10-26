@@ -34,7 +34,7 @@ export default class BaseRepo {
       .select(select);
 
     const count = await this.model.countDocuments(where);
-    const totalPages = count / limit;
+    const totalPages = Math.ceil(count / limit);
     const hasNextPage = page != totalPages;
 
     return {

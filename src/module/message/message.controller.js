@@ -11,9 +11,7 @@ import {
 } from "../../common/index.js";
 import { sendMessageSchema } from "./message.validation.js";
 
-export const messageRouter = Router({
-  
-});
+export const messageRouter = Router({});
 
 messageRouter.post(
   "/",
@@ -68,6 +66,62 @@ messageRouter.delete(
         res,
         data: deletedMessage,
         msg: "Message deleted",
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+messageRouter.post(
+  "/:messageId/requestIdentity",
+  authMiddleware,
+  async (req, res, next) => {
+    const messageId = req.params?.messageId;
+    const receiverId = req.user?._id;
+    try {
+      const data = await messageService.requestIdentity(messageId, receiverId);
+      return response({
+        res,
+        data,
+        msg: "Request sent",
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+messageRouter.get("/requested", authMiddleware, async (req, res, next) => {
+  try {
+    const data = await messageService.getRequestedMessages(
+      req.user?._id,
+      req.query,
+    );
+    return response({
+      res,
+      data,
+      msg: "Requested messages fetched",
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+messageRouter.patch(
+  "/:messageId/requestStatus",
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const data = await messageService.updateRequestStatus(
+        req.params?.messageId,
+        req.user?._id,
+        req.body?.status,
+      );
+      return response({
+        res,
+        data,
+        msg: "Request status updated",
       });
     } catch (e) {
       next(e);

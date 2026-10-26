@@ -1,4 +1,5 @@
 import mongoose, { Types } from "mongoose";
+import { enums } from "../../common/index.js";
 
 const messageSchema = new mongoose.Schema(
   {
@@ -24,6 +25,15 @@ const messageSchema = new mongoose.Schema(
     senderId: {
       type: Types.ObjectId,
       ref: "user",
+    },
+    isKnownSender: {
+      type: Boolean,
+      default: false,
+    },
+    requestStatus: {
+      type: Number,
+      enum: Object.values(enums.requestStatusEnum),
+      default: enums.requestStatusEnum.none,
     },
     senderName: String,
   },

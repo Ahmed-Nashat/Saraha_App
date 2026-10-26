@@ -82,6 +82,7 @@ app.use(
 app.use("/user", routers.userRouter);
 app.use("/auth", routers.authRouter);
 app.use("/message", routers.messageRouter);
+app.use("/conversation", routers.conversationRouter);
 app.use("/uploads", express.static("uploads"));
 
 // ---------------------- HEALTH CHECK -----------------------

@@ -21,6 +21,7 @@ import {
 import jwt from "jsonwebtoken";
 import { getPrefixRevoke } from "../../common/utils/token.service.js";
 import * as authHelper from "./auth.helper.js";
+import { UnauthorizedException } from "../../common/exceptions/index.js";
 
 // ---------------------- REFRESH TOKEN ----------------------
 export const refreshToken = async (refreshToken, issuer) => {
@@ -74,16 +75,16 @@ export const creatUser = async (userData, file) => {
 // ---------------------- CONFIRM EMAIL ----------------------
 export const confirmEmail = async ({ email, otp }) => {
   const user = await authHelper.checkUser({ email });
-  const UserOtpkey = authHelper.getUserOTPKey(user?.id);
+  const userOtpKey = authHelper.getUserOTPKey(user?.id);
 
   await authHelper.blockUser({ userId: user?.id, userOtpKey });
 
-  const redisOtp = await redisService.get({ key: UserOtpkey });
+  const redisOtp = await redisService.get({ key: userOtpKey });
   user.phoneNumber = decryptPhoneNumber(user);
 
   if (redisOtp == otp) {
     await user.updateOne({ $set: { confirmEmail: true } });
-    await redisService.del({ key: [UserOtpkey] });
+    await redisService.del({ key: [userOtpKey] });
     return user;
   } else await authHelper.wrongOtpHandler(user?.id);
 };
@@ -140,9 +141,21 @@ export const login = async (userData, issuer) => {
 
   const user = await authHelper.checkUser({ email });
 
-  await myCompare({
-    plainText: password,
-    cypherText: user.password,
+  if (user.banned) {
+    UnauthorizedException("You got banned, pleasse contact support");
+  }
+
+  try {
+    await myCompare({
+      plainText: password,
+      cypherText: user.password,
+    });
+  } catch (e) {
+    await authHelper.handleFailedLogin(user?.id || user?._id);
+  }
+
+  await redisService.del({
+    key: [authHelper.getUserLoginTriesKey(user._id || user.id)],
   });
 
   if (user.twoFactorEnabled) {

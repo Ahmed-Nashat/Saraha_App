@@ -14,7 +14,7 @@ import { redisClient } from "./db/redis.connection.js";
 import geoip from "geoip-lite";
 import morgan from "morgan";
 
-if (process.env.NODE_ENV == "production") console.log = () => {};
+// if (process.env.NODE_ENV == "production") console.log = () => {};
 
 const app = express();
 

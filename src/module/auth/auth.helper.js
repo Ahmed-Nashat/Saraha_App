@@ -10,18 +10,45 @@ import {
   tooManyAttemptException,
   userRepo,
 } from "../../common/index.js";
-import { max_otp_retries, refresh_ex } from "../../config/config.service.js";
+import { max_retries, refresh_ex } from "../../config/config.service.js";
 import { getRevokeKey } from "../../common/utils/token.service.js";
 import crypto from "crypto";
+import { resolveSrv } from "dns";
 
-export const getUserKey = (userId) => `user::${userId?.toString()}`;
-export const getUserOTPKey = (userId) => `otp::${getUserKey(userId)}`;
-export const getUserOTPForgetKey = (userId) =>
-  `forget::${getUserOTPKey(userId)}`;
-export const getUserSendKey = (userId) => `send::${getUserKey(userId)}`;
-export const getUserOtpTriesKey = (userId) => `tries::${getUserOTPKey(userId)}`;
-export const getUser2FAKey = (userId) => `2fa::${getUserOTPKey(userId)}`;
-export const generateOtp = () => crypto.randomInt(100000, 1000000);
+export const getUserKey = (userId) => `user::${userId?.toString()}`,
+  getUserOTPKey = (userId) => `otp::${getUserKey(userId)}`,
+  getUserOTPForgetKey = (userId) => `forget::${getUserOTPKey(userId)}`,
+  getUserSendKey = (userId) => `send::${getUserKey(userId)}`,
+  getUserOtpTriesKey = (userId) => `tries::${getUserOTPKey(userId)}`,
+  getUser2FAKey = (userId) => `2fa::${getUserOTPKey(userId)}`,
+  generateOtp = () => crypto.randomInt(100000, 1000000),
+  getUserLoginTriesKey = (userId) => `tries::login::${getUserKey(userId)}`,
+  handleFailedLogin = async (userId) => {
+    const key = getUserLoginTriesKey(userId);
+    let tries = 1;
+
+    if (await redisService.exists({ key }))
+      tries = await redisService.incr({ key });
+    else await redisService.set({ key, value: 1, ttl: 15 * 60 });
+
+    if (tries >= max_retries) {
+      await redisService.del({ key });
+      await userRepo.updateOne({
+        filter: {
+          _id: userId,
+        },
+        data: {
+          $set: {
+            banned: true,
+          },
+        },
+      });
+      tooManyAttemptException(
+        "Too many failed attempts. You got banned, please contact support",
+      );
+    }
+    badRequestException("Invalid email or password");
+  };
 
 // ---------------------- CREATE & SEND OTP ------------------
 export const createAndSendOtp = async ({ user, event }) => {
@@ -76,12 +103,22 @@ export const blockUser = async ({ userId, userOtpKey }) => {
     key: triesKey,
   });
 
-  if (userOtpretries && Number(userOtpretries) >= max_otp_retries) {
-    if (userOtpKey) await redisService.del({ key: [userOtpKey] });
+  if (userOtpretries && Number(userOtpretries) >= max_retries) {
     // delete the active otp
-    const remainingSeconds = await redisService.ttl({ key: triesKey });
-    const remainingMinutes = Math.ceil(remainingSeconds / 60);
-    tooManyAttemptException(`Try again after ${remainingMinutes} minutes`);
+
+    if (userOtpKey) await redisService.del({ key: [userOtpKey] });
+    await userRepo.updateOne({
+      filter: {
+        _id: userId,
+      },
+      data: {
+        $set: {
+          banned: true,
+        },
+      },
+      options: { runValidators: true },
+    });
+    tooManyAttemptException("You got banned, pleasse contact support");
   }
 };
 

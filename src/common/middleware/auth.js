@@ -19,7 +19,7 @@ export const authMiddleware = async (req, res, next) => {
     case enums.authEnum.Basic:
       const data = Buffer.from(token, "base64").toString();
       const [email, password] = data.split(":");
-      user = await userRepo.findByEmail(email);
+      user = await userRepo.findByEmail({ email });
 
       if (!user) notFoundException("User not found");
       const checkPassword = await myCompare({
@@ -27,6 +27,8 @@ export const authMiddleware = async (req, res, next) => {
         cypherText: user.password,
       });
       if (!checkPassword) notFoundException("User not found");
+      req.user = user;
+      next();
       break;
 
     case enums.authEnum.Bearer:

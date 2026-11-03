@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import { badRequestException } from "../exceptions/index.js";
 
-
 // ---------------------- HASING -----------------------------
 export const myHash = async (plainText) => {
   return await bcrypt.hash(plainText, 12);

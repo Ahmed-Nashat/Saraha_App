@@ -58,6 +58,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
     credintialsChangedAt: Number,
     confirmEmail: Boolean,
     deletedAt: Date,

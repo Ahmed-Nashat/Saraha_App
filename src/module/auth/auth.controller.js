@@ -76,7 +76,7 @@ authRouter.post(
   validator(authValidation.loginSchema),
   async (req, res, next) => {
     const issuer = `${req.protocol}//${req.hostname}`;
-    try {
+    try {      
       const tokens = await authService.login(req.body, issuer);
       return response({
         res,
